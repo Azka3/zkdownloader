@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zkdeveloper — Video Downloader</title>
+<style>
+  :root {
+    --ink: #16202B;
+    --ink-soft: #52616F;
+    --paper: #EEF1F3;
+    --surface: #FFFFFF;
+    --line: #DCE1E5;
+    --cobalt: #2451B3;
+    --cobalt-dark: #1C3F92;
+    --amber: #E8A33D;
+    --fb: #1877F2;
+    --danger-bg: #FCEBEA;
+    --danger-text: #B3261E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
+    padding: 56px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .shell {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--cobalt);
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-name {
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .lang-switch {
+    position: relative;
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .lang-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background: var(--ink);
+    border-radius: 999px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .lang-btn {
+    position: relative;
+    z-index: 1;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+  .lang-btn.active {
+    color: white;
+  }
+
+  h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+  }
+  p.lede {
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 28px;
+    max-width: 46ch;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tab.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: white;
+  }
+  .tab .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .row {
+    display: flex;
+    gap: 8px;
+  }
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  input[type="text"]:focus {
+    outline: 2px solid var(--cobalt);
+    outline-offset: 1px;
+  }
+  input[type="text"]::placeholder { color: #9AA6AF; }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary {
+    padding: 12px 20px;
+    background: var(--cobalt);
+    color: white;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .btn-primary:hover { background: var(--cobalt-dark); }
+  .btn-primary:disabled { background: #A9BEE0; cursor: not-allowed; }
+
+  .soon-box {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .soon-badge {
+    display: inline-block;
+    background: #FCF1DF;
+    color: #A66A11;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+
+  #result { margin-top: 20px; }
+  #result img {
+    width: 100%;
+    border-radius: 9px;
+    display: block;
+    margin-bottom: 14px;
+    border: 1px solid var(--line);
+  }
+
+  .res-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+  }
+  .resolution-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .res-btn {
+    padding: 9px 16px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .res-btn:hover { border-color: var(--cobalt); color: var(--cobalt); }
+  .res-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .download-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--ink);
+    color: white;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .download-link:hover { background: #29394A; }
+
+  .error {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    padding: 11px 14px;
+    border-radius: 9px;
+    font-size: 13.5px;
+    margin-top: 14px;
+  }
+  .loading {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    margin-top: 14px;
+  }
+
+  .foot-note {
+    text-align: center;
+    color: #9AA6AF;
+    font-size: 12.5px;
+    margin-top: 22px;
+  }
+
+  .site-footer {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .copyright {
+    color: #9AA6AF;
+    font-size: 12.5px;
+  }
+  .social-links {
+    display: flex;
+    gap: 10px;
+  }
+  .social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .social-links a:hover {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+  }
+  .social-links svg {
+    width: 16px;
+    height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">zk</div>
+      <div class="brand-name">zkdeveloper</div>
+    </div>
+    <div class="lang-switch">
+      <div class="lang-thumb" id="langThumb"></div>
+      <button class="lang-btn active" data-lang="id">ID</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+  </div>
+
+  <h1 id="heroTitle"></h1>
+  <p class="lede" id="heroLede"></p>
+
+  <div class="tabs">
+    <button class="tab active" data-platform="facebook">Facebook</button>
+    <button class="tab" data-platform="youtube"><span class="dot"></span>YouTube</button>
+    <button class="tab" data-platform="instagram"><span class="dot"></span>Instagram</button>
+    <button class="tab" data-platform="tiktok"><span class="dot"></span>TikTok</button>
+  </div>
+
+  <div class="panel">
+    <div id="platformBody"></div>
+  </div>
+
+  <p class="foot-note" id="footNote"></p>
+
+  <div class="site-footer">
+    <div class="copyright">&copy; 2026 zkdeveloper. All rights reserved.</div>
+    <div class="social-links">
+      <a href="#" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.26.82-.577 0-.285-.01-1.04-.016-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.744.082-.729.082-.729 1.205.085 1.84 1.238 1.84 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.42-1.305.762-1.605-2.665-.303-5.467-1.333-5.467-5.93 0-1.31.468-2.38 1.235-3.22-.123-.303-.535-1.523.117-3.176 0 0 1.008-.323 3.301 1.23.957-.266 1.983-.4 3.003-.404 1.02.004 2.046.138 3.005.404 2.29-1.553 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.807 5.624-5.48 5.92.43.372.823 1.104.823 2.225 0 1.607-.014 2.902-.014 3.297 0 .32.216.694.825.576C20.565 21.795 24 17.298 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="#" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.505 17.523 2 12 2S2 6.505 2 12.06c0 5.02 3.657 9.184 8.438 9.94v-7.03H7.898v-2.91h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562v1.875h2.773l-.443 2.91h-2.33V22c4.78-.756 8.437-4.92 8.437-9.94z"/></svg>
+      </a>
+      <a href="#" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-2.716 0-3.056.012-4.123.06-1.064.05-1.79.218-2.427.465a4.9 4.9 0 0 0-1.772 1.153A4.9 4.9 0 0 0 2.525 5.45c-.247.637-.415 1.363-.465 2.427C2.012 8.944 2 9.284 2 12s.012 3.056.06 4.123c.05 1.064.218 1.79.465 2.427a4.9 4.9 0 0 0 1.153 1.772 4.9 4.9 0 0 0 1.772 1.153c.637.247 1.363.415 2.427.465C8.944 21.988 9.284 22 12 22s3.056-.012 4.123-.06c1.064-.05 1.79-.218 2.427-.465a4.9 4.9 0 0 0 1.772-1.153 4.9 4.9 0 0 0 1.153-1.772c.247-.637.415-1.363.465-2.427.048-1.067.06-1.407.06-4.123s-.012-3.056-.06-4.123c-.05-1.064-.218-1.79-.465-2.427a4.9 4.9 0 0 0-1.153-1.772A4.9 4.9 0 0 0 18.55 2.525c-.637-.247-1.363-.415-2.427-.465C15.056 2.012 14.716 2 12 2zm0 1.802c2.67 0 2.986.01 4.04.058.976.045 1.505.207 1.858.344.467.182.8.4 1.15.75.35.35.568.683.75 1.15.137.353.3.882.344 1.858.048 1.054.058 1.37.058 4.04s-.01 2.986-.058 4.04c-.045.976-.207 1.505-.344 1.858a3.1 3.1 0 0 1-.75 1.15 3.1 3.1 0 0 1-1.15.75c-.353.137-.882.3-1.858.344-1.054.048-1.37.058-4.04.058s-2.986-.01-4.04-.058c-.976-.045-1.505-.207-1.858-.344a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.137-.353-.3-.882-.344-1.858-.048-1.054-.058-1.37-.058-4.04s.01-2.986.058-4.04c.045-.976.207-1.505.344-1.858.182-.467.4-.8.75-1.15a3.1 3.1 0 0 1 1.15-.75c.353-.137.882-.3 1.858-.344 1.054-.048 1.37-.058 4.04-.058zm0 3.063a5.135 5.135 0 1 0 0 10.27 5.135 5.135 0 0 0 0-10.27zm0 8.468a3.333 3.333 0 1 1 0-6.666 3.333 3.333 0 0 1 0 6.666zm6.538-8.671a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- i18n ----------
+  const dict = {
+    id: {
+      heroTitle: 'Simpan video dari link, tanpa drama.',
+      heroLede: 'Tempel link video publik, pilih resolusi yang tersedia, unduh filenya lengkap dengan audio.',
+      footNote: 'Cuma untuk video publik. Hasil unduhan tergantung kualitas yang tersedia dari sumbernya.',
+      placeholder: 'https://www.facebook.com/.../videos/...',
+      searchBtn: 'Cari Video',
+      processingBtn: 'Memproses...',
+      soonBadge: 'Coming soon',
+      soonText: (name) => `Downloader ${name} lagi disiapkan. Balik lagi nanti ya.`,
+      fetchingInfo: 'Mengambil info video...',
+      chooseRes: 'Pilih resolusi',
+      downloading: 'Mengunduh & menggabungkan video+audio...',
+      downloadBtn: (res) => `Unduh video (${res}p)`,
+      genericError: 'Terjadi kesalahan. Coba lagi.',
+      downloadError: 'Gagal mengunduh. Coba lagi.',
+    },
+    en: {
+      heroTitle: 'Save videos from a link, no drama.',
+      heroLede: 'Paste a public video link, pick an available resolution, and download the file with audio included.',
+      footNote: 'Public videos only. Download quality depends on what the source provides.',
+      placeholder: 'https://www.facebook.com/.../videos/...',
+      searchBtn: 'Find Video',
+      processingBtn: 'Processing...',
+      soonBadge: 'Coming soon',
+      soonText: (name) => `${name} downloader is on its way. Check back soon.`,
+      fetchingInfo: 'Fetching video info...',
+      chooseRes: 'Choose a resolution',
+      downloading: 'Downloading & merging video+audio...',
+      downloadBtn: (res) => `Download video (${res}p)`,
+      genericError: 'Something went wrong. Please try again.',
+      downloadError: 'Download failed. Please try again.',
+    },
+  };
+
+  let lang = 'id';
+  const t = (key) => dict[lang][key];
+
+  const langButtons = document.querySelectorAll('.lang-btn');
+  const langThumb = document.getElementById('langThumb');
+  langButtons.forEach((b, i) => {
+    b.addEventListener('click', () => {
+      lang = b.dataset.lang;
+      langButtons.forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      langThumb.style.transform = `translateX(${i * 100}%)`;
+      applyStaticText();
+      renderPlatform(currentPlatform);
+    });
+  });
+
+  function applyStaticText() {
+    document.getElementById('heroTitle').textContent = t('heroTitle');
+    document.getElementById('heroLede').textContent = t('heroLede');
+    document.getElementById('footNote').textContent = t('footNote');
+  }
+
+  // ---------- platform tabs ----------
+  const platformBody = document.getElementById('platformBody');
+  const tabs = document.querySelectorAll('.tab');
+  let currentPlatform = 'facebook';
+
+  function facebookTemplate() {
+    return `
+      <div class="row">
+        <input type="text" id="fbUrl" placeholder="${t('placeholder')}" />
+        <button class="btn-primary" id="btnSubmit">${t('searchBtn')}</button>
+      </div>
+      <div id="result"></div>
+    `;
+  }
+
+  function soonTemplate(name) {
+    return `
+      <div class="soon-box">
+        <div class="soon-badge">${t('soonBadge')}</div>
+        <div>${t('soonText')(name)}</div>
+      </div>
+    `;
+  }
+
+  function renderPlatform(platform) {
+    currentPlatform = platform;
+    if (platform === 'facebook') {
+      platformBody.innerHTML = facebookTemplate();
+      wireFacebookForm();
+    } else {
+      const names = { youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok' };
+      platformBody.innerHTML = soonTemplate(names[platform]);
+    }
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((tb) => tb.classList.remove('active'));
+      tab.classList.add('active');
+      renderPlatform(tab.dataset.platform);
+    });
+  });
+
+  function wireFacebookForm() {
+    const btn = document.getElementById('btnSubmit');
+    const input = document.getElementById('fbUrl');
+    const result = document.getElementById('result');
+    let currentUrl = '';
+
+    btn.addEventListener('click', async () => {
+      const url = input.value.trim();
+      if (!url) return;
+
+      currentUrl = url;
+      result.innerHTML = `<div class="loading">${t('fetchingInfo')}</div>`;
+      btn.disabled = true;
+      btn.textContent = t('processingBtn');
+
+      try {
+        const res = await fetch('/api/info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          result.innerHTML = `<div class="error">${data.error}</div>`;
+          return;
+        }
+
+        let html = '';
+        if (data.thumbnail) {
+          html += `<img src="${data.thumbnail}" alt="thumbnail" />`;
+        }
+
+        const resButtonsHtml = data.resolutions
+          .map((r) => `<button class="res-btn" data-res="${r}">${r}p</button>`)
+          .join('');
+
+        html += `<p class="res-label">${t('chooseRes')}</p>
+        <div class="resolution-row">${resButtonsHtml}</div>
+        <div id="downloadArea"></div>`;
+
+        result.innerHTML = html;
+
+        document.querySelectorAll('.res-btn').forEach((resBtn) => {
+          resBtn.addEventListener('click', () => downloadVideo(resBtn.dataset.res, currentUrl));
+        });
+      } catch (err) {
+        result.innerHTML = `<div class="error">${t('genericError')}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = t('searchBtn');
+      }
+    });
+  }
+
+  async function downloadVideo(resolution, url) {
+    const downloadArea = document.getElementById('downloadArea');
+    const resButtons = document.querySelectorAll('.res-btn');
+    resButtons.forEach((b) => (b.disabled = true));
+    downloadArea.innerHTML = `<div class="loading">${t('downloading')}</div>`;
+
+    try {
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, resolution }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        downloadArea.innerHTML = `<div class="error">${data.error}</div>`;
+        return;
+      }
+
+      downloadArea.innerHTML = `<a class="download-link" href="${data.downloadUrl}" download>
+        ${t('downloadBtn')(resolution)}
+      </a>`;
+    } catch (err) {
+      downloadArea.innerHTML = `<div class="error">${t('downloadError')}</div>`;
+    } finally {
+      resButtons.forEach((b) => (b.disabled = false));
+    }
+  }
+
+  applyStaticText();
+  renderPlatform('facebook');
+</script>
+
+</body>
+</html>
