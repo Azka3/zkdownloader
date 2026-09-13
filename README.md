@@ -17,6 +17,40 @@ Web sederhana untuk mengunduh video dari media sosial lewat link, lengkap dengan
 3. Backend (`server.js`) menjalankan [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) untuk mengambil video dan audio sesuai resolusi, menggabungkannya dengan `ffmpeg`, lalu menyimpan hasilnya di folder `downloads/`.
 4. Link file hasil gabungan dikirim balik ke frontend untuk diunduh oleh pengguna.
 
+## Akses dari HP (jaringan WiFi yang sama)
+
+Server ini juga bisa diakses dari HP, asal HP dan komputer yang menjalankan server terhubung ke **WiFi yang sama**.
+
+1. Pastikan di `server.js`, `app.listen` sudah didengarkan ke semua alamat:
+   ```javascript
+   app.listen(PORT, '0.0.0.0', () => {
+     console.log(`Server jalan di http://localhost:${PORT}`);
+   });
+   ```
+2. Cari alamat IP lokal komputer kamu (lihat panduan di bawah sesuai OS).
+3. Buka firewall untuk port 3000 kalau perlu (misal di Fedora: `sudo firewall-cmd --add-port=3000/tcp --permanent && sudo firewall-cmd --reload`).
+4. Di browser HP, buka `http://ALAMAT_IP_KOMPUTER:3000` (ganti dengan IP asli kamu, **bukan** `localhost` — karena `localhost` di HP merujuk ke HP itu sendiri, bukan ke komputer server).
+
+### Cara melihat alamat IP lokal
+
+**Windows**
+```
+ipconfig
+```
+Cari baris **IPv4 Address** di bagian adapter WiFi yang aktif.
+
+**Linux**
+```
+ip a
+```
+Cari baris `inet` di interface WiFi (biasanya `wlan0` atau serupa), formatnya seperti `192.168.x.x`.
+
+**macOS**
+```
+ipconfig getifaddr en0
+```
+Kalau `en0` tidak menghasilkan apa-apa, coba `en1` (nama interface WiFi bisa berbeda tergantung model Mac).
+
 ## Teknologi
 
 - **Backend:** Node.js, Express
